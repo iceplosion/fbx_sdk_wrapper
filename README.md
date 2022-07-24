@@ -1,8 +1,8 @@
 # FBX SDK Wrapper
 
-A wrapper static library to help read fbx file.
+A wrapper library of FBX SDK to help reading fbx file.
 
-Test with win 10 with VS2019. FBX version 2020.2.1.
+Test on win 10 with VS2019 and FBX SDK version 2020.2.1.
 
 ## Build guide
 
