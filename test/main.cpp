@@ -36,40 +36,50 @@ int main(void)
 	for (int index = 0; index < meshes.size(); ++index)
 	{
 		auto attribMeshPtr = meshes[index];
-		auto pos = attribMeshPtr->getVector3Attrib(A_POS);
-		auto N = attribMeshPtr->getVector3Attrib(A_NORMAL);
-		auto uv = attribMeshPtr->getVector2Attrib(A_UV);
-		auto uv2 = attribMeshPtr->containsAttrib(A_UV + std::to_string(2)) ?
-			attribMeshPtr->getVector2Attrib(A_UV + std::to_string(2)) : nullptr;
-		showMeta(attribMeshPtr, A_POS);
-		for (int id = 0; id < pos->size(); ++id)
+		const std::string meshName = attribMeshPtr->getStringAttrib(A_NAME)->at(0);
+		printf("name: %s\n", meshName.c_str());
+		printf("V3 props:\n");
+		for (auto& attrib : attribMeshPtr->Vector3Map)
 		{
-			auto [x, y, z] = pos->at(id);
-			printf("P[%d]: (%f, %f, %f)\n", id, x, y, z);
-		}
-		showMeta(attribMeshPtr, A_NORMAL);
-		for (int id = 0; id < N->size(); ++id)
-		{
-			auto [x, y, z] = N->at(id);
-			printf("N[%d]: (%f, %f, %f)\n", id, x, y, z);
-		}
-		showMeta(attribMeshPtr, A_UV);
-		for (int id = 0; id < uv->size(); ++id)
-		{
-			auto [u, v] = uv->at(id);
-			printf("UV[%d]: (%f, %f)\n", id, u, v);
-		}
-		if (uv2 != nullptr)
-		{
-			showMeta(attribMeshPtr, A_UV + std::to_string(2));
-			for (int id = 0; id < uv2->size(); ++id)
+			printf("%s <- domain %d\n", attrib.first.c_str(), attribMeshPtr->metaOfAttrib[attrib.first]->domain);
+			int index = 0;
+			for (const auto& [x, y, z] : *attrib.second)
 			{
-				auto [u, v] = uv2->at(id);
-				printf("UV2[%d]: (%f, %f)\n", id, u, v);
+				printf("[%d]: %f, %f, %f\n", index++, x, y, z);
+			}
+		}
+		printf("V2 props:\n");
+		for (auto& attrib : attribMeshPtr->Vector2Map)
+		{
+			printf("%s <- domain %d\n", attrib.first.c_str(), attribMeshPtr->metaOfAttrib[attrib.first]->domain);
+			int index = 0;
+			for (const auto& [x, y] : *attrib.second)
+			{
+				printf("[%d]: %f, %f\n", index++, x, y);
+			}
+		}
+		printf("Int props:\n");
+		for (auto& attrib : attribMeshPtr->IntMap)
+		{
+			printf("%s <- domain %d\n", attrib.first.c_str(), attribMeshPtr->metaOfAttrib[attrib.first]->domain);
+			int index = 0;
+			for (const auto& x : *attrib.second)
+			{
+				printf("[%d]: %d\n", index++, x);
+			}
+		}
+		printf("V4 props:\n");
+		for (auto& attrib : attribMeshPtr->Vector4Map)
+		{
+			printf("%s <- domain %d\n", attrib.first.c_str(), attribMeshPtr->metaOfAttrib[attrib.first]->domain);
+			int index = 0;
+			for (const auto& [x, y, z, w] : *attrib.second)
+			{
+				printf("[%d]: %f, %f, %f, %f\n", index++, x, y, z, w);
 			}
 		}
 	}
 	
-	FBXWrapper::exportMeshes(R"(D:\export)", "cube2", meshes);
+	//FBXWrapper::exportMeshes(R"(D:\export)", "cube2", meshes);
 	return 0;
 }
