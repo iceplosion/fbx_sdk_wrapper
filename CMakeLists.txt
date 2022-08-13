@@ -30,6 +30,7 @@ fbxsdk/libxml2/libxml
 )
 
 option(USE_DEBUG_FBX "Link with fbx sdk debug library" OFF)
+option(BUILD_UNIT_TEST "Build Unit Test" OFF)
 
 if (USE_DEBUG_FBX)
     file(GLOB FBX_SDK_LIBS lib/debug/*.lib)
@@ -44,7 +45,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${FBX_SDK_INCLUDES})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${FBX_SDK_LIBS})
 
 # test executable
+if (BUILD_UNIT_TEST)
 add_executable(test test/main.cpp)
 set_property(TARGET test PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 target_include_directories(test PUBLIC src)
 target_link_libraries(test PUBLIC ${PROJECT_NAME})
+endif()

@@ -67,6 +67,10 @@ namespace FBXWrapper
 	std::shared_ptr<AttribMesh> loadAsAttribMesh(FbxMesh* mesh)
 	{
 		auto result = std::make_shared<AttribMesh>();
+		std::string meshName = std::string(mesh->GetName());
+		result->tryCreateAttrib(A_NAME, T_String, D_Meta);
+		result->getStringAttrib(A_NAME)->push_back(meshName);
+
 		int pointCount = mesh->GetControlPointsCount();
 		int polygonCount = mesh->GetPolygonCount();
 		FbxVector4* fbxPoints = mesh->GetControlPoints();
@@ -75,7 +79,7 @@ namespace FBXWrapper
 		auto posAttr = result->getVector3Attrib(A_POS);
 		for (int pidx = 0; pidx < pointCount; ++pidx)
 		{
-			auto P = std::make_tuple(fbxPoints[pidx][0], fbxPoints[pidx][1], fbxPoints[pidx][2]);
+			auto P = std::make_tuple((Real)fbxPoints[pidx][0], (Real)fbxPoints[pidx][1], (Real)fbxPoints[pidx][2]);
 			posAttr->push_back(P);
 
 		}
@@ -107,7 +111,7 @@ namespace FBXWrapper
 				for (int pidx = 0; pidx < pointCount; ++pidx)
 				{
 					auto fbxNormal = fbxNormalLayer->GetDirectArray().GetAt(pidx);
-					auto N = std::make_tuple(fbxNormal[0], fbxNormal[1], fbxNormal[2]);
+					auto N = std::make_tuple((Real)fbxNormal[0], (Real)fbxNormal[1], (Real)fbxNormal[2]);
 					normalAttr->push_back(N);
 				}
 			}
@@ -122,7 +126,7 @@ namespace FBXWrapper
 					for (int vidx = 0; vidx < polygonRefPoints->size(); ++vidx)
 					{
 						auto fbxNormal = fbxNormals.GetAt(vidx);
-						auto N = std::make_tuple(fbxNormal[0], fbxNormal[1], fbxNormal[2]);
+						auto N = std::make_tuple((Real)fbxNormal[0], (Real)fbxNormal[1], (Real)fbxNormal[2]);
 						normalAttr->push_back(N);
 					}
 				}
@@ -133,7 +137,7 @@ namespace FBXWrapper
 					{
 						auto fbxNormalIdx = indexArray.GetAt(vidx);
 						auto fbxNormal = fbxNormals.GetAt(fbxNormalIdx);
-						auto N = std::make_tuple(fbxNormal[0], fbxNormal[1], fbxNormal[2]);
+						auto N = std::make_tuple((Real)fbxNormal[0], (Real)fbxNormal[1], (Real)fbxNormal[2]);
 						normalAttr->push_back(N);
 					}
 				}
@@ -165,7 +169,7 @@ namespace FBXWrapper
 					for (int pidx = 0; pidx < pointCount; ++pidx)
 					{
 						auto fbxUV = fbxUVs.GetAt(pidx);
-						auto uv = std::make_tuple(fbxUV[0], fbxUV[1]);
+						auto uv = std::make_tuple((Real)fbxUV[0], (Real)fbxUV[1]);
 						uvAttr->push_back(uv);
 					}
 				}
@@ -176,7 +180,7 @@ namespace FBXWrapper
 					{
 						int uvIndex = fbxUVIndexArr.GetAt(pidx);
 						auto fbxUV = fbxUVs.GetAt(uvIndex);
-						auto uv = std::make_tuple(fbxUV[0], fbxUV[1]);
+						auto uv = std::make_tuple((Real)fbxUV[0], (Real)fbxUV[1]);
 						uvAttr->push_back(uv);
 					}
 				}
@@ -200,9 +204,159 @@ namespace FBXWrapper
 						{
 							int uvIndex = mesh->GetTextureUVIndex(fidx, inPolyIndex);
 							auto fbxUV = fbxUVs.GetAt(uvIndex);
-							auto uv = std::make_tuple(fbxUV[0], fbxUV[1]);
+							auto uv = std::make_tuple((Real)fbxUV[0], (Real)fbxUV[1]);
 							uvAttr->push_back(uv);
 						}
+					}
+				}
+			}
+		}
+
+		int tangentSetCount = mesh->GetElementTangentCount();
+		for (int tSetId = 0; tSetId < tangentSetCount; ++tSetId)
+		{
+			std::string tangentSetName = A_TANGENT;
+			if (tSetId > 0)
+			{
+				tangentSetName += std::to_string(tSetId + 1);
+			}
+			FbxGeometryElementTangent* tangentLayer = mesh->GetElementTangent(tSetId);
+			result->tryCreateAttrib(tangentSetName, T_V3, D_Vertex);
+			auto tangentAttr = result->getVector3Attrib(tangentSetName);
+			if (tangentLayer->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+			{
+				auto referenceMode = tangentLayer->GetReferenceMode();
+				if (referenceMode == FbxGeometryElement::eDirect)
+				{
+					auto& fbxTangents = tangentLayer->GetDirectArray();
+					int vertexCount = polygonRefPoints->size();
+					for (int vidx = 0; vidx < vertexCount; ++vidx)
+					{
+						auto fbxTangent = fbxTangents.GetAt(vidx);
+						auto tangent = std::make_tuple((Real)fbxTangent[0], (Real)fbxTangent[1], (Real)fbxTangent[2]);
+						tangentAttr->push_back(tangent);
+					}
+				}
+				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
+				{
+					auto& fbxIndex = tangentLayer->GetIndexArray();
+					auto& fbxTangents = tangentLayer->GetDirectArray();
+					int vertexCount = polygonRefPoints->size();
+					for (int vidx = 0; vidx < vertexCount; ++vidx)
+					{
+						int index = fbxIndex.GetAt(vidx);
+						auto fbxTangent = fbxTangents.GetAt(index);
+						auto tangent = std::make_tuple((Real)fbxTangent[0], (Real)fbxTangent[1], (Real)fbxTangent[2]);
+						tangentAttr->push_back(tangent);
+					}
+				}
+			}
+		}
+
+		int binormalSetCount = mesh->GetElementBinormalCount();
+		for (int binormalSetId = 0; binormalSetId < binormalSetCount; ++binormalSetId)
+		{
+			std::string binormalSetName = A_BINORMAL;
+			if (binormalSetId > 0)
+			{
+				binormalSetName += std::to_string(binormalSetId + 1);
+			}
+			result->tryCreateAttrib(binormalSetName, T_V3, D_Vertex);
+			auto binormalAttr = result->getVector3Attrib(binormalSetName);
+			FbxGeometryElementBinormal* binormalLayer = mesh->GetElementBinormal(binormalSetId);
+			if (binormalLayer->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+			{
+				auto referenceMode = binormalLayer->GetReferenceMode();
+				if (referenceMode == FbxGeometryElement::eDirect)
+				{
+					auto& fbxBinormals = binormalLayer->GetDirectArray();
+					int vertexCount = polygonRefPoints->size();
+					for (int vidx = 0; vidx < vertexCount; ++vidx)
+					{
+						auto fbxBinormal = fbxBinormals.GetAt(vidx);
+						Vector3 binormal = std::make_tuple((Real)fbxBinormal[0], (Real)fbxBinormal[1], (Real)fbxBinormal[2]);
+						binormalAttr->push_back(binormal);
+					}
+				}
+				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
+				{
+					auto& fbxBinormals = binormalLayer->GetDirectArray();
+					auto& fbxIndices = binormalLayer->GetIndexArray();
+					int vertexCount = polygonRefPoints->size();
+					for (int vidx = 0; vidx < vertexCount; ++vidx)
+					{
+						int index = fbxIndices.GetAt(vidx);
+						auto fbxBinormal = fbxBinormals.GetAt(index);
+						Vector3 binormal = std::make_tuple((Real)fbxBinormal[0], (Real)fbxBinormal[1], (Real)fbxBinormal[2]);
+						binormalAttr->push_back(binormal);
+					}
+				}
+			}
+		}
+
+		int colorSetCount = mesh->GetElementVertexColorCount();
+		for (int colorSetId = 0; colorSetId < colorSetCount; ++colorSetId)
+		{
+			std::string colorSetName = A_COLOR;
+			if (colorSetId > 0)
+			{
+				colorSetName += std::to_string(colorSetId + 1);
+			}
+			FbxGeometryElementVertexColor* colorLayer = mesh->GetElementVertexColor(colorSetId);
+			auto mappingMode = colorLayer->GetMappingMode();
+			if (mappingMode == FbxGeometryElement::eByControlPoint)
+			{
+				result->tryCreateAttrib(colorSetName, T_V4, D_Point);
+				auto colorAttr = result->getVector4Attrib(colorSetName);
+				auto referenceMode = colorLayer->GetReferenceMode();
+				auto& fbxColors = colorLayer->GetDirectArray();
+				if (referenceMode == FbxGeometryElement::eDirect)
+				{
+					for (int ptId = 0; ptId < pointCount; ++ptId)
+					{
+						auto fbxColor = fbxColors.GetAt(ptId);
+						Vector4 color = std::make_tuple((Real)fbxColor.mRed, (Real)fbxColor.mGreen, (Real)fbxColor.mBlue, (Real)fbxColor.mAlpha);
+						colorAttr->push_back(color);
+					}
+				}
+				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
+				{
+					auto fbxIndices = colorLayer->GetIndexArray();
+					for (int ptId = 0; ptId < pointCount; ++ptId)
+					{
+						int index = fbxIndices.GetAt(ptId);
+						auto fbxColor = fbxColors.GetAt(index);
+						Vector4 color = std::make_tuple((Real)fbxColor.mRed, (Real)fbxColor.mGreen, (Real)fbxColor.mBlue, (Real)fbxColor.mAlpha);
+						colorAttr->push_back(color);
+					}
+				}
+			}
+			else if (mappingMode == FbxGeometryElement::eByPolygonVertex)
+			{
+				result->tryCreateAttrib(colorSetName, T_V4, D_Vertex);
+				auto colorAttr = result->getVector4Attrib(colorSetName);
+				auto referenceMode = colorLayer->GetReferenceMode();
+				auto& fbxColors = colorLayer->GetDirectArray();
+				if (referenceMode == FbxGeometryElement::eDirect)
+				{
+					int vertexCount = polygonRefPoints->size();
+					for (int vertId = 0; vertId < vertexCount; ++vertId)
+					{
+						auto fbxColor = fbxColors.GetAt(vertId);
+						Vector4 color = std::make_tuple((Real)fbxColor.mRed, (Real)fbxColor.mGreen, (Real)fbxColor.mBlue, (Real)fbxColor.mAlpha);
+						colorAttr->push_back(color);
+					}
+				}
+				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
+				{
+					auto fbxIndices = colorLayer->GetIndexArray();
+					int vertexCount = polygonRefPoints->size();
+					for (int vertId = 0; vertId < vertexCount; ++vertId)
+					{
+						int index = fbxIndices.GetAt(vertId);
+						auto fbxColor = fbxColors.GetAt(index);
+						Vector4 color = std::make_tuple((Real)fbxColor.mRed, (Real)fbxColor.mGreen, (Real)fbxColor.mBlue, (Real)fbxColor.mAlpha);
+						colorAttr->push_back(color);
 					}
 				}
 			}

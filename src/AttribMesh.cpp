@@ -22,7 +22,9 @@ namespace FBXWrapper
 	DEF_ATTRIB_MAP_OP(Real)
 	DEF_ATTRIB_MAP_OP(Vector2)
 	DEF_ATTRIB_MAP_OP(Vector3)
+	DEF_ATTRIB_MAP_OP(Vector4)
 	DEF_ATTRIB_MAP_OP(Int)
+	DEF_ATTRIB_MAP_OP(String)
 
 	bool AttribMesh::tryCreateAttrib(const std::string& name, const AttribType type, const AttribDomain domain)
 	{
@@ -42,8 +44,14 @@ namespace FBXWrapper
 		case T_V3:
 			createVector3Attrib(name);
 			break;
+		case T_V4:
+			createVector4Attrib(name);
+			break;
 		case T_Int:
 			createIntAttrib(name);
+			break;
+		case T_String:
+			createStringAttrib(name);
 			break;
 		}
 		auto meta = std::make_shared<AttribMeta>();
@@ -77,8 +85,14 @@ namespace FBXWrapper
 		case T_V3:
 			removeVector3Attrib(name);
 			break;
+		case T_V4:
+			removeVector4Attrib(name);
+			break;
 		case T_Int:
 			removeIntAttrib(name);
+			break;
+		case T_String:
+			removeStringAttrib(name);
 			break;
 		}
 		metaOfAttrib.erase(name);

@@ -24,17 +24,20 @@ namespace FBXWrapper
 	DEF_ATTRIB_TYPE(Real);
 	DEF_ATTRIB_TYPE(Vector2);
 	DEF_ATTRIB_TYPE(Vector3);
+	DEF_ATTRIB_TYPE(Vector4);
 	typedef int Int;
 	DEF_ATTRIB_TYPE(Int);
+	typedef std::string String;
+	DEF_ATTRIB_TYPE(String);
 
 	enum AttribType
 	{
-		T_Real, T_V2, T_V3, T_Int
+		T_Real, T_V2, T_V3, T_V4, T_Int, T_String
 	};
 
 	enum AttribDomain
 	{
-		D_Point, D_Vertex, D_Element
+		D_Point, D_Vertex, D_Element, D_Meta
 	};
 
 	class AttribMeta
@@ -52,21 +55,28 @@ namespace FBXWrapper
 		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(Real);
 		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(Vector2);
 		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(Vector3);
+		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(Vector4);
 		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(Int);
+		DEF_ATTRIB_MAP_OP_PROTO_PRIVATE(String);
 
 	public:
 		std::unordered_map<std::string, MetaPtr> metaOfAttrib;
 		DEF_ATTRIB_MAP(Real);
 		DEF_ATTRIB_MAP(Vector2);
 		DEF_ATTRIB_MAP(Vector3);
+		DEF_ATTRIB_MAP(Vector4);
 		DEF_ATTRIB_MAP(Int);
+		DEF_ATTRIB_MAP(String);
 		DEF_ATTRIB_MAP_OP_PROTO(Real);
 		DEF_ATTRIB_MAP_OP_PROTO(Vector2);
 		DEF_ATTRIB_MAP_OP_PROTO(Vector3);
+		DEF_ATTRIB_MAP_OP_PROTO(Vector4);
 		DEF_ATTRIB_MAP_OP_PROTO(Int);
+		DEF_ATTRIB_MAP_OP_PROTO(String);
 
 		bool tryCreateAttrib(const std::string& name, const AttribType type, const AttribDomain domain);
 		bool containsAttrib(const std::string& name);
 		bool tryRemoveAttrib(const std::string& name);
 	};
+	typedef std::shared_ptr<AttribMesh> AttribMeshPtr;
 }

@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Constants.h"
 #include "AttribMesh.h"
+#include "Exporter.h"
 
 void showMeta(std::shared_ptr<FBXWrapper::AttribMesh> mesh, const std::string& name)
 {
@@ -15,9 +16,22 @@ void showMeta(std::shared_ptr<FBXWrapper::AttribMesh> mesh, const std::string& n
 		std::cout << name << " <- null" << std::endl;
 	}
 }
+#include "fbxsdk.h"
 int main(void)
 {
-	auto meshes = FBXWrapper::loadMeshes(R"(assets\cube.fbx)");
+	FbxManager* manager = FbxManager::Create();
+	int count = manager->GetIOPluginRegistry()->GetWriterFormatCount();
+
+	for (int i = 0; i < count; ++i)
+	{
+		if (manager->GetIOPluginRegistry()->WriterIsFBX(i))
+		{
+			printf("%s\n", manager->GetIOPluginRegistry()->GetWriterFormatDescription(i));
+
+		}
+	}
+
+	auto meshes = FBXWrapper::loadMeshes(R"(D:\assets\Meshes\cube.fbx)");
 	std::cout << "Mesh count: " << meshes.size() << std::endl;
 	for (int index = 0; index < meshes.size(); ++index)
 	{
@@ -55,5 +69,7 @@ int main(void)
 			}
 		}
 	}
+	
+	FBXWrapper::exportMeshes(R"(D:\export)", "cube2", meshes);
 	return 0;
 }
