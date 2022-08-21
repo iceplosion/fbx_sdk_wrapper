@@ -321,7 +321,7 @@ namespace FBXWrapper
 				}
 				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
 				{
-					auto fbxIndices = colorLayer->GetIndexArray();
+					auto& fbxIndices = colorLayer->GetIndexArray();
 					for (int ptId = 0; ptId < pointCount; ++ptId)
 					{
 						int index = fbxIndices.GetAt(ptId);
@@ -349,7 +349,7 @@ namespace FBXWrapper
 				}
 				else if (referenceMode == FbxGeometryElement::eIndexToDirect)
 				{
-					auto fbxIndices = colorLayer->GetIndexArray();
+					auto& fbxIndices = colorLayer->GetIndexArray();
 					int vertexCount = polygonRefPoints->size();
 					for (int vertId = 0; vertId < vertexCount; ++vertId)
 					{
